@@ -1,8 +1,11 @@
 import React, { useEffect, useRef } from "react";
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
+import { useNavigate } from "react-router-dom"; // React Router 사용
+
 
 const HouseScene = () => {
+    const navigate = useNavigate(); // 페이지 이동을 위한 훅
     const mountRef = useRef(null);
     const mixers = useRef([]);
     const clickableObjects = useRef([]);
@@ -188,9 +191,9 @@ const HouseScene = () => {
 
             if (intersects.length > 0) {
                 const clickedObject = intersects[0].object;
-                const boundingBox = clickedObject.userData.boundingBox;
-                if (boundingBox && boundingBox.containsPoint(raycaster.current.ray.origin)) {
-                    alert(`You clicked on: ${clickedObject.userData.name}`);
+                if (clickedObject.userData.clickable) {
+                    console.log(`You clicked on: ${clickedObject.userData.name}`);
+                    navigate("/dailyluck");
                 }
             }
             // 애니메이션 믹서 업데이트 강제 적용
