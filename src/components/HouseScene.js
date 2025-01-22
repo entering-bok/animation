@@ -1,10 +1,12 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 import { useNavigate } from "react-router-dom"; // React Router 사용
 
+import FaceSelector from "./FaceSelector";
+import "../styles/HouseScene.css";
 
 const HouseScene = () => {
     const navigate = useNavigate(); // 페이지 이동을 위한 훅
@@ -17,14 +19,22 @@ const HouseScene = () => {
     const raycaster = useRef(new THREE.Raycaster());
     const mouse = useRef(new THREE.Vector2());
     const isDancing = useRef(false);
-    const sceneRef = useRef(new THREE.Scene());
+    const [selectedFaces, setSelectedFaces] = useState([]);
+
+    const faceImages = [
+        { id: 1, path: "/models/me_face.glb", name: "Character 1" },
+        { id: 2, path: "/models/aunt_face.glb", name: "Character 2" },
+        { id: 3, path: "/models/grandma_face.glb", name: "Character 3" },
+        { id: 4, path: "/models/grandfa_face.glb", name: "Character 4" },
+    ];
+    
 
     useEffect(() => {
         const scene = new THREE.Scene();
         scene.background = new THREE.Color(0xffffff);
         const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
         const renderer = new THREE.WebGLRenderer({ antialias: true });
-        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setSize(window.innerWidth - 100, window.innerHeight);
 
         const currentMount = mountRef.current;
         if (currentMount) {
@@ -352,7 +362,35 @@ const HouseScene = () => {
         };
     }, []);
 
-    return <div ref={mountRef} />;
+    const handleSelect = (id) => {
+        setSelectedFaces((prev) => {
+            if (prev.includes(id)) {
+                // 이미 선택된 얼굴이면 선택 해제
+                return prev.filter((faceId) => faceId !== id);
+            } else if (prev.length < 2) {
+                // 최대 두 명까지만 선택
+                return [...prev, id];
+            }
+            return prev; // 두 명 이상 선택 불가
+        });
+    };
+
+    const handleChat = () => {
+        console.log("대화하기 버튼 클릭!");
+        console.log("선택된 얼굴들:", selectedFaces);
+    };
+
+    return (
+        <div className="house-scene-container">
+            <div className="scene" ref={mountRef} />
+            <FaceSelector
+                faces={faceImages}
+                onSelect={handleSelect}
+                selectedFaces={selectedFaces}
+                onChat={handleChat}
+            />
+        </div>
+    );
 };
 
 export default HouseScene;
