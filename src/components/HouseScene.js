@@ -371,13 +371,13 @@ const HouseScene = () => {
                 // 최대 두 명까지만 선택
                 return [...prev, id];
             }
-            return prev; // 두 명 이상 선택 불가
         });
     };
 
     const handleChat = () => {
         console.log("대화하기 버튼 클릭!");
         console.log("선택된 얼굴들:", selectedFaces);
+        navigate(`/conversation/${selectedFaces[0]}/${selectedFaces[1]}`);
     };
 
     return (
@@ -386,7 +386,7 @@ const HouseScene = () => {
             <FaceSelector
                 faces={faceImages}
                 onSelect={handleSelect}
-                selectedFaces={selectedFaces}
+                selectedFaces={selectedFaces.sort()}
                 onChat={handleChat}
             />
         </div>
