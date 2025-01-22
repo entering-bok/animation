@@ -43,31 +43,39 @@ const HouseScene = () => {
                 const house = gltf.scene;
                 
                 // Bounding Box 생성
-            const boundingBox = new THREE.Box3().setFromObject(house);
-            house.userData.boundingBox = boundingBox; // Bounding Box 저장
+                const boundingBox = new THREE.Box3().setFromObject(house);
+                house.userData.boundingBox = boundingBox; // Bounding Box 저장
 
-            // LOD 생성
-            const lod = new THREE.LOD();
+                // LOD 생성
+                const lod = new THREE.LOD();
 
-            // 고해상도 메쉬
-            lod.addLevel(house.clone(), 0);
+                // 고해상도 메쉬
+                lod.addLevel(house.clone(), 0);
 
-            // 중간 해상도 메쉬
-            const midResMesh = house.clone();
-            lod.addLevel(midResMesh, 10);
+                // 중간 해상도 메쉬
+                const midResMesh = house.clone();
+                lod.addLevel(midResMesh, 10);
 
-            // 저해상도 메쉬
-            const lowResMesh = house.clone();
-            lod.addLevel(lowResMesh, 20);
+                // 저해상도 메쉬
+                const lowResMesh = house.clone();
+                lod.addLevel(lowResMesh, 20);
 
-            scene.add(lod);
-
+                scene.add(lod);
 
                 // 클릭 가능한 cylinder 메쉬만 저장
                 house.traverse((child) => {
-                    if (child.isMesh && child.name === "Cylinder_1") {
-                        child.userData.clickable = true; // 클릭 가능한 오브젝트 설정
-                        clickableObjects.current.push(child); // 클릭 가능한 객체만 저장
+                    if (child.isMesh) {
+                        console.log(`Mesh found: ${child.name}`);
+        
+                        // 각 객체에 고유한 이벤트 정보를 추가
+                        if (child.name === "Cylinder_1") {
+                            child.userData = { clickable: true, name: "bok", event: "navigateToSceneBok" };
+                        } else if (child.name === "Cube110") {
+                            child.userData = { clickable: true, name: "lantern", event: "navigateToSceneLantern" };
+                        } else if (child.name === "Cube157") {
+                            child.userData = { clickable: true, name: "radio", event: "navigateToSceneRadio" };
+                        }
+                        clickableObjects.current.push(child); // 클릭 가능한 객체 배열에 추가
                     }
                 });
 
@@ -96,7 +104,8 @@ const HouseScene = () => {
                             );
                 
                             // 초기 회전 설정 (랜덤 방향)
-                            const randomRotation = Math.random() * 2 * Math.PI; // 0 ~ 2π (0 ~ 360도)
+                            const randomRotation = Math.random() * 2 * Math.PI
+                            ; // 0 ~ 2π (0 ~ 360도)
                             character.rotation.y = randomRotation;
                 
                             // 초기 속도 설정 (정면 방향 기준)
@@ -191,9 +200,24 @@ const HouseScene = () => {
 
             if (intersects.length > 0) {
                 const clickedObject = intersects[0].object;
+        
                 if (clickedObject.userData.clickable) {
                     console.log(`You clicked on: ${clickedObject.userData.name}`);
-                    navigate("/dailyluck");
+        
+                    // userData 기반으로 이벤트 처리
+                    switch (clickedObject.userData.event) {
+                        case "navigateToSceneRadio":
+                            alert("Cylinder 1 was clicked!");
+                            break;
+                        case "navigateToSceneLantern":
+                            navigate("/lantern");
+                            break;
+                        case "navigateToSceneBok":
+                            navigate("/dailyluck");
+                            break;
+                        default:
+                            console.warn("No event defined for this object.");
+                    }
                 }
             }
             // 애니메이션 믹서 업데이트 강제 적용
