@@ -4,6 +4,8 @@ import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 import "./../styles/DailyLuckScene.css";
 
+
+
 const DailyLuckScene = () => {
     const mountRef = useRef(null);
     const [name, setName] = useState(""); // 이름 입력 상태

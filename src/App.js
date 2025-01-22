@@ -7,7 +7,7 @@ import DailyLuckScene from "./components/dailyLuckScene";
 
 function App() {
     return (
-        <Router>
+        <Router basename="/">
         <div>
             <Routes>
                 <Route path="/" element={<HouseScene />} />
