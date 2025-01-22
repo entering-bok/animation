@@ -14,6 +14,7 @@ const HouseScene = () => {
     const boundaries = { xMin: -5, xMax: 7, zMin: -5, zMax: 7 }; // 집 내부 경계 설정
     const raycaster = useRef(new THREE.Raycaster());
     const mouse = useRef(new THREE.Vector2());
+    const isDancing = useRef(false);
     const sceneRef = useRef(new THREE.Scene());
 
     useEffect(() => {
@@ -206,6 +207,16 @@ const HouseScene = () => {
                         case "navigateToSceneRadio": {
                             console.log("radio 눌림!");
                         
+                            // 이미 춤추는 상태인지 확인
+                            if (isDancing.current) {
+                                console.log("이미 춤추는 상태입니다. 새로고침합니다.");
+                                window.location.reload(); // 페이지 새로고침
+                                return;
+                            }
+
+                            console.log("춤추는 상태로 전환");
+                            isDancing.current = true;
+
                             // 기존 캐릭터 제거
                             characters.current.forEach((character) => {
                                 scene.remove(character);
@@ -214,10 +225,10 @@ const HouseScene = () => {
                         
                             // GLTFLoader로 새로운 캐릭터 모델 로드
                             const dancingCharacters = [
-                                { name: "grandma_flair", path: "/models/grandma_flair.glb", position: { x: 3, y: 0, z: 5 }, scale: 1.3  },
-                                { name: "aunt_dancing", path: "/models/aunt_dancing.glb", position: { x: -2, y: 0, z: 3 }, scale: 1  },
-                                { name: "grandfa_dancing", path: "/models/grandfa_dancing.glb", position: { x: 6, y: 0, z: 2 }, scale: 1  },
-                                { name: "me_dancing", path: "/models/me_dancing.glb", position: { x: 0, y: 0, z: -3 }, scale: 1  },
+                                { name: "grandma_flair", path: "/models/grandma_flair.glb", position: { x: 3, y: 0, z: 5 }, scale: 1.3 },
+                                { name: "aunt_dancing", path: "/models/aunt_dancing.glb", position: { x: -2, y: 0, z: 3 }, scale: 1 },
+                                { name: "grandfa_dancing", path: "/models/grandfa_dancing.glb", position: { x: 6, y: 0, z: 2 }, scale: 1 },
+                                { name: "me_dancing", path: "/models/me_dancing.glb", position: { x: 0, y: 0, z: -3 }, scale: 1 },
                             ];
                         
                             dancingCharacters.forEach((char) => {
@@ -249,7 +260,7 @@ const HouseScene = () => {
                                     },
                                     undefined,
                                     (error) => {
-                                        console.error("Error loading ${char.name} model:", error);
+                                        console.error(`Error loading ${char.name} model:`, error);
                                     }
                                 );
                             });
@@ -290,7 +301,7 @@ const HouseScene = () => {
                             });
                         
                             break;
-                        }                        
+                        }                                              
                         
                         case "navigateToSceneLantern":
                             navigate("/lantern");
