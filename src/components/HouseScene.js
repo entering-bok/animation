@@ -64,15 +64,13 @@ const HouseScene = () => {
 
                 // 클릭 가능한 cylinder 메쉬만 저장
                 house.traverse((child) => {
-                    if (child.isMesh) {
-                        console.log(`Mesh found: ${child.name}`);
-        
+                    if (child.isMesh) {                
                         // 각 객체에 고유한 이벤트 정보를 추가
                         if (child.name === "Cylinder_1") {
                             child.userData = { clickable: true, name: "bok", event: "navigateToSceneBok" };
                         } else if (child.name === "Cube110") {
                             child.userData = { clickable: true, name: "lantern", event: "navigateToSceneLantern" };
-                        } else if (child.name === "Cube157") {
+                        } else if (child.name === "Cube010_2" || child.name === "Cube010_3" || child.name === "Cube010_6") {
                             child.userData = { clickable: true, name: "radio", event: "navigateToSceneRadio" };
                         }
                         clickableObjects.current.push(child); // 클릭 가능한 객체 배열에 추가
@@ -88,7 +86,7 @@ const HouseScene = () => {
                 ];
 
                 //캐릭터 속도
-                const fixedVelocities = [0.1, 0.06, 0.03, 0.03];
+                const fixedVelocities = [0.04, 0.02, 0.005, 0.005];
                 
                 characterPaths.forEach((path, index) => {
                     loader.load(
@@ -118,7 +116,7 @@ const HouseScene = () => {
                 
                             // 캐릭터에 이름 및 클릭 가능 속성 추가
                             character.userData.clickable = true; // 클릭 가능 설정
-                            character.userData.name = `Character ${index + 1}`; // 캐릭터 이름 설정
+                            character.userData.name = "Character ${index + 1}"; // 캐릭터 이름 설정
 
                             scene.add(character);
                             characters.current.push(character);
@@ -200,30 +198,119 @@ const HouseScene = () => {
 
             if (intersects.length > 0) {
                 const clickedObject = intersects[0].object;
-        
+            
                 if (clickedObject.userData.clickable) {
-                    console.log(`You clicked on: ${clickedObject.userData.name}`);
-        
+            
                     // userData 기반으로 이벤트 처리
                     switch (clickedObject.userData.event) {
-                        case "navigateToSceneRadio":
-                            alert("Cylinder 1 was clicked!");
+                        case "navigateToSceneRadio": {
+                            console.log("radio 눌림!");
+                        
+                            // 기존 캐릭터 제거
+                            characters.current.forEach((character) => {
+                                scene.remove(character);
+                            });
+                            characters.current = []; // 캐릭터 배열 초기화
+                        
+                            // GLTFLoader로 새로운 캐릭터 모델 로드
+                            const dancingCharacters = [
+                                { name: "grandma_flair", path: "/models/grandma_flair.glb", position: { x: 3, y: 0, z: 5 }, scale: 1.3  },
+                                { name: "aunt_dancing", path: "/models/aunt_dancing.glb", position: { x: -2, y: 0, z: 3 }, scale: 1  },
+                                { name: "grandfa_dancing", path: "/models/grandfa_dancing.glb", position: { x: 6, y: 0, z: 2 }, scale: 1  },
+                                { name: "me_dancing", path: "/models/me_dancing.glb", position: { x: 0, y: 0, z: -3 }, scale: 1  },
+                            ];
+                        
+                            dancingCharacters.forEach((char) => {
+                                loader.load(
+                                    char.path,
+                                    (gltf) => {
+                                        const character = gltf.scene;
+                        
+                                        // 위치와 스케일 설정
+                                        character.position.set(char.position.x, char.position.y, char.position.z);
+                                        character.scale.set(char.scale, char.scale, char.scale);
+                        
+                                        // userData.velocity를 0으로 설정하여 이동을 멈춤
+                                        character.userData.velocity = new THREE.Vector3(0, 0, 0); // 속도 0으로 설정
+                        
+                                        // 애니메이션 믹서 설정
+                                        const mixer = new THREE.AnimationMixer(character);
+                                        gltf.animations.forEach((clip) => {
+                                            const action = mixer.clipAction(clip);
+                                            action.play(); // 애니메이션 재생
+                                        });
+                        
+                                        // 씬에 추가
+                                        scene.add(character);
+                        
+                                        // 캐릭터 배열 및 믹서에 추가
+                                        characters.current.push(character);
+                                        mixers.current.push(mixer);
+                                    },
+                                    undefined,
+                                    (error) => {
+                                        console.error("Error loading ${char.name} model:", error);
+                                    }
+                                );
+                            });
+                        
+                            // 2. 노래 재생 및 종료 시 처리
+                            const audioListener = new THREE.AudioListener();
+                            camera.add(audioListener);
+                            const audio = new THREE.Audio(audioListener);
+                            const audioLoader = new THREE.AudioLoader();
+                            audioLoader.load("/audio/flair_song.m4a", (buffer) => {
+                                audio.setBuffer(buffer);
+                                audio.setLoop(false);
+                                audio.setVolume(0.5);
+                                audio.play();
+                        
+                                // 클럽 조명 효과
+                                const originalLightColor = ambientLight.color.clone(); // 기존 조명 색상 저장
+                                let colorIndex = 0;
+                                const rainbowColors = [0xff0000, 0xff7f00, 0xffff00, 0x00ff00, 0x0000ff, 0x4b0082, 0x9400d3]; // 빨주노초파남보
+                                const lightingInterval = setInterval(() => {
+                                    ambientLight.color.setHex(rainbowColors[colorIndex]);
+                                    directionalLight.color.setHex(rainbowColors[colorIndex]);
+                                    colorIndex = (colorIndex + 1) % rainbowColors.length; // 색상 순환
+                                }, 200); // 0.2초마다 색 변경
+                        
+                                // 노래 종료 시 처리
+                                audio.onEnded = () => {
+                                    clearInterval(lightingInterval); // 조명 효과 종료
+                                    ambientLight.color.copy(originalLightColor); // 기존 색으로 복원
+                                    directionalLight.color.copy(originalLightColor);
+                        
+                                    // 모든 새로운 캐릭터 제거
+                                    characters.current.forEach((character) => {
+                                        scene.remove(character);
+                                    });
+                                    characters.current = [];
+                                };
+                            });
+                        
                             break;
+                        }                        
+                        
                         case "navigateToSceneLantern":
                             navigate("/lantern");
                             break;
+            
                         case "navigateToSceneBok":
                             navigate("/dailyluck");
                             break;
+            
                         default:
                             console.warn("No event defined for this object.");
                     }
                 }
-            }
+            }            
+
             // 애니메이션 믹서 업데이트 강제 적용
             const delta = clock.getDelta();
             mixers.current.forEach((mixer) => mixer.update(delta));
         };
+
 
         // 클릭 이벤트 리스너 추가
         window.addEventListener("click", onMouseClick);
