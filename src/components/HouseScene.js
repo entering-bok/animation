@@ -1,5 +1,7 @@
 import React, { useEffect, useRef } from "react";
 import * as THREE from "three";
+import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
+
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 import { useNavigate } from "react-router-dom"; // React Router 사용
 
@@ -28,6 +30,10 @@ const HouseScene = () => {
         if (currentMount) {
             currentMount.appendChild(renderer.domElement);
         }
+
+        // OrbitControls 추가
+        const controls = new OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
 
         // 조명 추가
         const ambientLight = new THREE.AmbientLight(0xffffff, 1.5);
