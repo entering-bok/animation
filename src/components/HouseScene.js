@@ -5,6 +5,7 @@ import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 const HouseScene = () => {
     const mountRef = useRef(null);
     const mixers = useRef([]);
+    const clickableObjects = useRef([]);
     const clock = new THREE.Clock();
     const characters = useRef([]); // 캐릭터 데이터를 저장
     const boundaries = { xMin: -5, xMax: 7, zMin: -5, zMax: 7 }; // 집 내부 경계 설정
@@ -37,12 +38,33 @@ const HouseScene = () => {
             "/models/house.glb",
             (gltf) => {
                 const house = gltf.scene;
-                scene.add(house);
+                
+                // Bounding Box 생성
+            const boundingBox = new THREE.Box3().setFromObject(house);
+            house.userData.boundingBox = boundingBox; // Bounding Box 저장
+
+            // LOD 생성
+            const lod = new THREE.LOD();
+
+            // 고해상도 메쉬
+            lod.addLevel(house.clone(), 0);
+
+            // 중간 해상도 메쉬
+            const midResMesh = house.clone();
+            lod.addLevel(midResMesh, 10);
+
+            // 저해상도 메쉬
+            const lowResMesh = house.clone();
+            lod.addLevel(lowResMesh, 20);
+
+            scene.add(lod);
+
 
                 // 클릭 가능한 cylinder 메쉬만 저장
                 house.traverse((child) => {
                     if (child.isMesh && child.name === "Cylinder_1") {
                         child.userData.clickable = true; // 클릭 가능한 오브젝트 설정
+                        clickableObjects.current.push(child); // 클릭 가능한 객체만 저장
                     }
                 });
 
@@ -162,14 +184,18 @@ const HouseScene = () => {
 
             // Raycaster로 교차 테스트 수행
             raycaster.current.setFromCamera(mouse.current, camera);
-            const intersects = raycaster.current.intersectObjects(scene.children, true);
+            const intersects = raycaster.current.intersectObjects(clickableObjects.current, true);
 
             if (intersects.length > 0) {
                 const clickedObject = intersects[0].object;
-                if (clickedObject.userData.clickable) {
+                const boundingBox = clickedObject.userData.boundingBox;
+                if (boundingBox && boundingBox.containsPoint(raycaster.current.ray.origin)) {
                     alert(`You clicked on: ${clickedObject.userData.name}`);
                 }
             }
+            // 애니메이션 믹서 업데이트 강제 적용
+            const delta = clock.getDelta();
+            mixers.current.forEach((mixer) => mixer.update(delta));
         };
 
         // 클릭 이벤트 리스너 추가

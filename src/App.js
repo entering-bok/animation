@@ -5,7 +5,7 @@ import LanternScene from "./components/LanternScene";
 function App() {
     return (
         <div>
-            <LanternScene />
+            <HouseScene />
         </div>
     );
 }
