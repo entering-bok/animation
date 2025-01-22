@@ -24,3 +24,5 @@ yarn-error.log*
 
 # house.glb 제외
 house.glb
+
+.env
