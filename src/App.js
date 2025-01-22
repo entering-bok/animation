@@ -4,6 +4,7 @@ import { BrowserRouter as Router, Route, Routes, Link } from "react-router-dom";
 import HouseScene from "./components/HouseScene";
 import LanternScene from "./components/LanternScene";
 import DailyLuckScene from "./components/dailyLuckScene";
+import AnotherScene from "./components/test";
 
 function App() {
     return (
@@ -13,6 +14,7 @@ function App() {
                 <Route path="/" element={<HouseScene />} />
                 <Route path="/lantern" element={<LanternScene />} />
                 <Route path="/dailyluck" element={<DailyLuckScene />} />
+                <Route path="/test" element={<AnotherScene />} />
             </Routes>
         </div>
     </Router>
