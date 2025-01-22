@@ -8,6 +8,9 @@ const HouseScene = () => {
     const clock = new THREE.Clock();
     const characters = useRef([]); // 캐릭터 데이터를 저장
     const boundaries = { xMin: -5, xMax: 7, zMin: -5, zMax: 7 }; // 집 내부 경계 설정
+    const raycaster = useRef(new THREE.Raycaster());
+    const mouse = useRef(new THREE.Vector2());
+    const sceneRef = useRef(new THREE.Scene());
 
     useEffect(() => {
         const scene = new THREE.Scene();
@@ -36,6 +39,13 @@ const HouseScene = () => {
                 const house = gltf.scene;
                 scene.add(house);
 
+                // 클릭 가능한 cylinder 메쉬만 저장
+                house.traverse((child) => {
+                    if (child.isMesh && child.name === "Cylinder_1") {
+                        child.userData.clickable = true; // 클릭 가능한 오브젝트 설정
+                    }
+                });
+
                 // 캐릭터 로드 및 배치
                 const characterPaths = [
                     "/models/me.glb",
@@ -45,7 +55,7 @@ const HouseScene = () => {
                 ];
 
                 //캐릭터 속도
-                const fixedVelocities = [0.1, 0.08, 0.04, 0.04];
+                const fixedVelocities = [0.1, 0.06, 0.03, 0.03];
                 
                 characterPaths.forEach((path, index) => {
                     loader.load(
@@ -72,6 +82,10 @@ const HouseScene = () => {
                                 Math.cos(character.rotation.y) * speed  // z축 속도 (회전 방향 적용)
                             );
                 
+                            // 캐릭터에 이름 및 클릭 가능 속성 추가
+                            character.userData.clickable = true; // 클릭 가능 설정
+                            character.userData.name = `Character ${index + 1}`; // 캐릭터 이름 설정
+
                             scene.add(character);
                             characters.current.push(character);
                 
@@ -93,7 +107,7 @@ const HouseScene = () => {
                                     0, // y축 고정
                                     Math.cos(newRotation) * speed  // z축 속도 (회전 방향 적용)
                                 );
-                            }, 3000); // 3초마다 새로운 방향으로 전환
+                            }, 4000); // 4초마다 새로운 방향으로 전환
                         },
                         undefined,
                         (error) => {
@@ -108,7 +122,7 @@ const HouseScene = () => {
             }
         );
 
-        camera.position.set(4, 7, 15);
+        camera.position.set(6, 6, 12);
         camera.lookAt(0, 0, 0);
 
         // 캐릭터 이동 업데이트 로직
@@ -138,7 +152,28 @@ const HouseScene = () => {
                     );
                 }
             });
-        };        
+        };      
+        
+        // 마우스 클릭 이벤트 처리
+        const onMouseClick = (event) => {
+            const rect = renderer.domElement.getBoundingClientRect();
+            mouse.current.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+            mouse.current.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+            // Raycaster로 교차 테스트 수행
+            raycaster.current.setFromCamera(mouse.current, camera);
+            const intersects = raycaster.current.intersectObjects(scene.children, true);
+
+            if (intersects.length > 0) {
+                const clickedObject = intersects[0].object;
+                if (clickedObject.userData.clickable) {
+                    alert(`You clicked on: ${clickedObject.userData.name}`);
+                }
+            }
+        };
+
+        // 클릭 이벤트 리스너 추가
+        window.addEventListener("click", onMouseClick);
 
         // 애니메이션 및 렌더링 루프
         const animate = () => {
