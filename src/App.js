@@ -5,6 +5,7 @@ import HouseScene from "./components/HouseScene";
 import LanternScene from "./components/LanternScene";
 import DailyLuckScene from "./components/dailyLuckScene";
 import AnotherScene from "./components/test";
+import ConversationScene from "./components/conversationScene";
 
 function App() {
     return (
@@ -15,6 +16,7 @@ function App() {
                 <Route path="/lantern" element={<LanternScene />} />
                 <Route path="/dailyluck" element={<DailyLuckScene />} />
                 <Route path="/test" element={<AnotherScene />} />
+                <Route path="/conversation/:id1/:id2" element={<ConversationScene />} />
             </Routes>
         </div>
     </Router>
