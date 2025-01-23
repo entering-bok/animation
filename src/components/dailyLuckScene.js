@@ -47,6 +47,7 @@ const DailyLuckScene = () => {
     // Three.js 초기화
     useEffect(() => {
         const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0xf4f4f4);
         const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
         const renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth / 2, window.innerHeight);
@@ -70,6 +71,7 @@ const DailyLuckScene = () => {
             (gltf) => {
                 const model = gltf.scene;
                 model.position.set(0, -1, 0); // 모델의 위치 조정
+                model.scale.set(1.5, 1.5, 1.5);
                 scene.add(model);
             },
             undefined,

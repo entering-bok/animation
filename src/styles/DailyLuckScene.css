@@ -5,17 +5,17 @@
 
 .threejs-container {
     flex: 1;
-    background-color: black; /* 기본 배경색 */
+    background-color: #f4f4f4;
 }
 
 .ui-container {
-    flex: 1;
-    padding: 20px;
+    flex: 2;
     background-color: #f4f4f4;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
+    margin-left: -200px;
 }
 
 .fortune-form input {
