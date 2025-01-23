@@ -7,7 +7,7 @@
     flex-direction: column;
     gap: 10px;
     padding: 10px;
-    background-color: rgba(255, 255, 255, 0.8);
+    background: transparent; /* 배경 투명 */
     border-radius: 10px;
 }
 

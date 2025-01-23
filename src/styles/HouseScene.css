@@ -6,6 +6,13 @@ html, body {
 }
 
 .house-scene-container {
+    width: 100%;
+    height: 100vh; /* 화면 전체 높이 */
+    background-image: url('../../public/image/background.jpg'); /* 배경 이미지 */
+    background-size: 100% 100%; /* 배경 이미지 크기를 컨테이너에 맞춤 */
+    background-repeat: no-repeat; /* 배경 이미지 반복 제거 */
+    background-position: center; /* 배경 이미지 가운데 정렬 */
+    overflow: hidden; /* 넘치는 요소 숨기기 */
     display: flex; /* 자식 요소를 가로로 배치 */
     flex-direction: row; /* 가로 정렬 */
     height: 100vh; /* 뷰포트 전체 높이를 차지 */
@@ -16,6 +23,7 @@ html, body {
 .scene {
     flex: 1; /* Three.js 캔버스가 남은 공간을 모두 차지 */
     position: relative;
+    background: transparent; /* 배경 투명 */
 }
 
 .face-selector {
@@ -25,6 +33,7 @@ html, body {
     flex-direction: column;
     align-items: center;
     justify-content: center;
+    background: transparent; /* 배경 투명 */
     overflow-y: auto; /* 내용이 많을 경우 세로 스크롤 추가 */
 }
 

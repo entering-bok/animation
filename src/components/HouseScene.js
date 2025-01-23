@@ -31,12 +31,12 @@ const HouseScene = () => {
 
     useEffect(() => {
         const scene = new THREE.Scene();
-        const textureLoader = new THREE.TextureLoader();
-        const backgroundTexture = textureLoader.load("image/background.jpg"); // 이미지 경로
-        scene.background = backgroundTexture;
+        // Renderer에서 alpha 활성화
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        // 배경 투명하게 설정
+        scene.background = null;
         // scene.background = new THREE.Color(0xffffff);
         const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-        const renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth - 100, window.innerHeight);
 
         const currentMount = mountRef.current;

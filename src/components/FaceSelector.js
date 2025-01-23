@@ -8,11 +8,13 @@ const FaceSelector = ({ faces, onSelect, selectedFaces, onChat }) => {
 
     useEffect(() => {
         const generateThumbnail = async (face) => {
-            const renderer = new THREE.WebGLRenderer({ antialias: true });
+            // Renderer에서 alpha 활성화
+            const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            // 배경 투명하게 설정
             renderer.setSize(150, 150); // 썸네일 크기 확대
             const camera = new THREE.PerspectiveCamera(75, 1, 0.1, 1000);
             const scene = new THREE.Scene();
-            scene.background = new THREE.Color(0xffffff);
+            scene.background = null;
     
             const light = new THREE.DirectionalLight(0xffffff, 2.5);
             light.position.set(5, 5, 5);

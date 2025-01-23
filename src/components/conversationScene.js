@@ -224,6 +224,17 @@ const ConversationScene = () => {
     ? koreanNames[currentSpeakerEng] || currentSpeakerEng
     : "";
 
+    useEffect(() => {
+        // Three.js 배경 이미지 설정
+        const initializeBackground = () => {
+          const textureLoader = new THREE.TextureLoader();
+          const backgroundTexture = textureLoader.load("/image/background.jpg"); // 이미지 경로
+          scene.background = backgroundTexture; // 씬 배경 설정
+        };
+    
+        initializeBackground();
+      }, []);
+
   return (
     <div className="conversation-scene-container">
       <Canvas className="canvas" camera={{ position: [0, 3, 8], fov: 75 }}>
