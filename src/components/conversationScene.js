@@ -5,6 +5,8 @@ import { Canvas, useLoader } from "@react-three/fiber";
 import { OrbitControls, Html } from "@react-three/drei";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 import "./../styles/ConversationScene.css";
+import "../index.css";
+
 import {
   startTwoGPTConversation,
   startSingleGPTConversation,
@@ -23,49 +25,40 @@ const koreanNames = {
   aunt: "고모",
   grandma: "할머니",
   grandfa: "할아버지",
-  a: "a", // 필요하면 수정/삭제
+  a: "a",
 };
 
 const ConversationScene = () => {
   const { id1, id2 } = useParams();
-
-  // 기존 배열 (인덱스로 id1, id2를 받아 캐릭터 영문명 반환)
   const names = ["a", "me", "aunt", "grandma", "grandfa"];
 
-  // "대화에 me가 포함되어 있는지" 판별
   const hasMe = names[id1] === "me" || names[id2] === "me";
 
-  // 대화 관련 상태
-  const [dialogues, setDialogues] = useState([]); // API 응답 메시지들
+  // 대화 상태
+  const [dialogues, setDialogues] = useState([]);
   const [conversationId, setConversationId] = useState(null);
 
-  // 몇 번째 턴인지 (0부터 시작)
-  // - hasMe=true인 경우: 짝수=me, 홀수=GPT
-  // - hasMe=false인 경우: 짝수=캐릭터1, 홀수=캐릭터2 (둘 다 GPT 역할)
+  // 턴 (0부터 시작)
   const [turn, setTurn] = useState(0);
 
-  // 로딩/오류/사용자 입력
+  // 기타 상태
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [userInput, setUserInput] = useState("");
 
-  // 타이핑 효과를 위한 상태와 ref
+  // 타이핑
   const [typedMessage, setTypedMessage] = useState("");
   const typingIntervalRef = useRef(null);
 
-  // ----------------------------------------
-  // 1) 대화 초기화
-  // ----------------------------------------
   useEffect(() => {
     const initializeConversation = async () => {
-      if (!id1 || !id2) return; // 라우트 파라미터가 유효해야 진행
+      if (!id1 || !id2) return;
 
       try {
         setLoading(true);
         setError(null);
 
         let response;
-        // 만약 id1이 me라면 단일 대화, 아니면 두 GPT 대화
         if (names[id1] === "me") {
           response = await startSingleGPTConversation(names[id2]);
         } else {
@@ -78,7 +71,7 @@ const ConversationScene = () => {
 
         setConversationId(response);
         setDialogues([]);
-        setTurn(0); // 0부터 시작
+        setTurn(0);
       } catch (err) {
         console.error("Error initializing conversation:", err);
         setError("대화를 시작할 수 없습니다.");
@@ -90,9 +83,7 @@ const ConversationScene = () => {
     initializeConversation();
   }, [id1, id2]);
 
-  // ----------------------------------------
-  // 2) GLB(모델) 경로 매핑
-  // ----------------------------------------
+  // GLB 경로 매핑
   const glbMapping = {
     "me-grandma": "/models/me-grandma.glb",
     "grandma-grandfa": "/models/grandma-grandfa.glb",
@@ -104,9 +95,7 @@ const ConversationScene = () => {
   const sortedIds = [names[id1], names[id2]].join("-");
   const glbPath = glbMapping[sortedIds];
 
-  // ----------------------------------------
-  // 3) GPT 대화 API 호출 (말하기)
-  // ----------------------------------------
+  // GPT 대화 API
   const handleContinueConversation = async (message) => {
     if (!conversationId) {
       setError("대화가 시작되지 않았습니다.");
@@ -117,10 +106,7 @@ const ConversationScene = () => {
       setLoading(true);
       setError(null);
 
-      // 현재 화자: 짝수 턴이면 id1, 홀수 턴이면 id2 (me가 있어도/없어도 동일)
       const speaker = turn % 2 === 0 ? names[id1] : names[id2];
-
-      // 첫 턴 + me + 입력 없으면 "안녕하세요!" 로 대체
       let userMessage;
       if (turn === 0 && speaker === "me" && !message) {
         userMessage = "안녕하세요!";
@@ -128,13 +114,11 @@ const ConversationScene = () => {
         userMessage = message;
       }
 
-      // GPT에 메시지 전달
       const response = await continueConversation(conversationId, userMessage, speaker);
       if (!response) {
         throw new Error("No response from conversation API.");
       }
 
-      // assistant(모델 응답) 메시지만 추가
       const assistantMessages = response.filter((msg) => msg.role === "assistant");
       setDialogues((prev) => {
         const newMessages = assistantMessages.filter(
@@ -150,22 +134,18 @@ const ConversationScene = () => {
     }
   };
 
-  // ----------------------------------------
-  // 4) 화살표 버튼 클릭
-  //    - hasMe=true일 때만 사용자 입력 가능
-  // ----------------------------------------
+  // 화살표 버튼 클릭
   const handleArrowClick = async () => {
-    // 만약 me가 없다면(=두 캐릭터 다 GPT)
-    // => 항상 handleContinueConversation(null)로 자동 진행
     if (!hasMe) {
+      // 두 캐릭터 모두 me가 없을 때
       await handleContinueConversation(null);
       setTurn((prev) => prev + 1);
       return;
     }
 
-    // 여기서부터는 me가 있는 경우
-    // 짝수 턴 => me가 말할 차례
+    // me가 있는 경우
     if (turn % 2 === 0) {
+      // me 차례
       if (!userInput.trim()) {
         setError("입력 내용이 비어 있습니다.");
         return;
@@ -174,30 +154,24 @@ const ConversationScene = () => {
       setUserInput("");
       setTurn((prev) => prev + 1);
     } else {
-      // 홀수 턴 => GPT가 말한 뒤 -> 다음 턴(me 차례)
+      // GPT 차례가 끝난 후
       setTypedMessage("");
       setTurn((prev) => prev + 1);
     }
   };
 
-  // ----------------------------------------
-  // 5) 타이핑 효과
-  // ----------------------------------------
+  // 타이핑 효과
   useEffect(() => {
     const lastAssistantMessage = dialogues
       .filter((msg) => msg.role === "assistant")
       .slice(-1)[0]?.content;
 
-    // 메시지가 없으면 초기화
     if (!lastAssistantMessage) {
       setTypedMessage("");
-      if (typingIntervalRef.current) {
-        clearInterval(typingIntervalRef.current);
-      }
+      if (typingIntervalRef.current) clearInterval(typingIntervalRef.current);
       return;
     }
 
-    // interval 초기화
     if (typingIntervalRef.current) {
       clearInterval(typingIntervalRef.current);
     }
@@ -220,22 +194,38 @@ const ConversationScene = () => {
     };
   }, [dialogues]);
 
-    // ----------------------------------------
-    // 6) 현재 화자 이름(한글)
-    // - 짝수 턴 => names[id1], 홀수 턴 => names[id2]
-    // ----------------------------------------
-    const currentSpeakerEng =
-    turn === 0
-        ? "" // 첫 번째 턴에는 빈 문자열
-        : turn % 2 === 0
-        ? names[id2]
-        : names[id1];
-    const currentSpeakerKor = turn === 0 ? "" : koreanNames[currentSpeakerEng] || currentSpeakerEng;
+  // ------------------------------
+  // 현재 화자 이름(한글)
+  // ------------------------------
+  let currentSpeakerEng = ""; // 먼저 선언!
 
+  if (hasMe) {
+    // meIndex / otherIndex
+    const meIndex = names[id1] === "me" ? id1 : id2;
+    const otherIndex = meIndex === id1 ? id2 : id1;
+
+    // 짝수 턴 => me, 홀수 턴 => 상대
+    currentSpeakerEng = turn % 2 === 0 ? names[meIndex] : names[otherIndex];
+  } else {
+    // me가 전혀 없는 경우
+    if (turn === 0) {
+      currentSpeakerEng = ""; // 첫 턴은 표시 X
+    } else {
+      // turn >= 1
+      if ((turn - 1) % 2 === 0) {
+        currentSpeakerEng = names[id1];
+      } else {
+        currentSpeakerEng = names[id2];
+      }
+    }
+  }
+
+  const currentSpeakerKor = currentSpeakerEng
+    ? koreanNames[currentSpeakerEng] || currentSpeakerEng
+    : "";
 
   return (
     <div className="conversation-scene-container">
-      {/* 3D 모델 표시 */}
       <Canvas className="canvas" camera={{ position: [0, 3, 8], fov: 75 }}>
         <ambientLight intensity={0.8} />
         <directionalLight position={[10, 10, 5]} intensity={1.5} />
@@ -251,47 +241,34 @@ const ConversationScene = () => {
         <OrbitControls />
       </Canvas>
 
-      {/* 대화창 영역 */}
       <div>
-
         <div className="dialogue-box">
           {error && <p className="error">{error}</p>}
 
-          {/* 
-            만약 me가 없으면(=hasMe=false) => 입력창 노출X
-            (항상 2 GPT가 번갈아 말하므로 타이핑 메시지만 표시)
-          */}
-
-            {/* 현재 화자 이름(한글) */}
-            <h3 className="whoisspeaking">{currentSpeakerKor}</h3>
+          {/* 현재 화자 이름 표시 */}
+          <h3 className="whoisspeaking">{currentSpeakerKor}</h3>
 
           {!hasMe ? (
+            // me 없음 => 2 GPT 대화
             <div className="dialogue-messages">
               <p>{typedMessage}</p>
             </div>
+          ) : turn % 2 === 0 ? (
+            // 짝수 턴 => me 입력창
+            <div className="user-input">
+              <textarea
+                value={userInput}
+                onChange={(e) => setUserInput(e.target.value)}
+                placeholder="대화를 입력하세요..."
+              />
+            </div>
           ) : (
-            /* me가 있을 때(=hasMe=true) => 
-               짝수 턴(me 차례)엔 입력창, 
-               홀수 턴(GPT 차례)엔 타이핑 메시지 표시
-            */
-            turn % 2 === 0 ? (
-              // me 차례
-              <div className="user-input">
-                <textarea
-                  value={userInput}
-                  onChange={(e) => setUserInput(e.target.value)}
-                  placeholder="대화를 입력하세요..."
-                />
-              </div>
-            ) : (
-              // GPT 차례
-              <div className="dialogue-messages">
-                <p>{typedMessage}</p>
-              </div>
-            )
+            // 홀수 턴 => GPT의 타이핑 메시지
+            <div className="dialogue-messages">
+              <p>{typedMessage}</p>
+            </div>
           )}
 
-          {/* 화살표 버튼 (대화 진행) */}
           {conversationId && (
             <button onClick={handleArrowClick} className="continue-button">
               <img

@@ -11,3 +11,12 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+@font-face {
+  font-family: 'Chatfont'; /* 폰트 이름 */
+  src: url('./fonts/KOROAD_Bold.ttf') format('truetype'),
+       url('./fonts/KOROAD_Light.ttf') format('truetype'),
+       url('./fonts/KOROAD_Medium.ttf') format('truetype'); /* 폰트 형식 */
+  font-weight: normal; /* 폰트 두께 */
+  font-style: normal; /* 폰트 스타일 */
+}
