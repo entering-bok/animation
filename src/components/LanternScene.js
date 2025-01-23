@@ -31,7 +31,8 @@ const LanternScene = () => {
         "이승진\n\n하면함",
         "김대영\n\n끝난 소감 : 백엔드 못해본게 아쉽지만, 정말 알차게 보낸 한달이였습니다.\n 새해 소원 : 살빼기, 졸업하기, 공익 붙기!",
         "고상혁\n\n이제 그만 집에 가고 싶은데 사람들은 계속 보고싶다 서울에서 만나요",
-        "조어진\n\n날 생 生\n 날 일 日\n 생축!"
+        "조어진\n\n날 생 生\n 날 일 日\n 생축!",
+        "페이커\n\n집에 가고 싶다"
     ];
 
     useEffect(() => {
@@ -46,6 +47,60 @@ const LanternScene = () => {
         if (currentMount) {
             currentMount.appendChild(renderer.domElement);
         }
+
+        // 별 추가
+    const addStars = () => {
+        const starGeometry = new THREE.BufferGeometry();
+        const starCount = 1000; // 별의 개수
+        const starVertices = [];
+
+        for (let i = 0; i < starCount; i++) {
+            const x = (Math.random() - 0.5) * 500; // x 좌표
+            const y = (Math.random() - 0.5) * 500; // y 좌표
+            const z = (Math.random() - 0.5) * 500; // z 좌표
+            starVertices.push(x, y, z);
+        }
+
+        starGeometry.setAttribute(
+            "position",
+            new THREE.Float32BufferAttribute(starVertices, 3)
+        );
+
+        // 원형 텍스처 생성
+    const createCircleTexture = () => {
+        const size = 256; // 텍스처 크기
+        const canvas = document.createElement("canvas");
+        canvas.width = size;
+        canvas.height = size;
+
+        const context = canvas.getContext("2d");
+        const gradient = context.createRadialGradient(
+            size / 2, size / 2, 0, size / 2, size / 2, size / 2
+        );
+        gradient.addColorStop(0, "white");
+        gradient.addColorStop(0.5, "rgba(255, 255, 255, 0.5)");
+        gradient.addColorStop(1, "rgba(255, 255, 255, 0)");
+
+        context.fillStyle = gradient;
+        context.beginPath();
+        context.arc(size / 2, size / 2, size / 2, 0, Math.PI * 2);
+        context.fill();
+
+        return new THREE.CanvasTexture(canvas);
+    };
+
+        const starMaterial = new THREE.PointsMaterial({
+            size: 1.5, // 별의 크기
+            sizeAttenuation: true, // 카메라 거리와 함께 크기 조정
+            map: createCircleTexture(), // 원형 텍스처
+            transparent: 0.2, // 투명도 적용
+        });
+
+        const stars = new THREE.Points(starGeometry, starMaterial);
+        scene.add(stars);
+        };
+
+    addStars(); // 별 추가
 
         // 조명 추가
         const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
