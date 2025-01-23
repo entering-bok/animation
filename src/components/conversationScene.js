@@ -23,36 +23,31 @@ const ConversationScene = () => {
     const [turn, setTurn] = useState(0);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
+    const [userInput, setUserInput] = useState(""); // 사용자 입력 상태
 
     // 대화 초기화
     useEffect(() => {
         const initializeConversation = async () => {
+            if (!id1 || !id2) return; // ID가 없으면 실행 중지
+    
             try {
                 setLoading(true);
                 setError(null);
     
                 let response;
                 if (names[id1] === "me") {
-                    console.log("Starting single GPT conversation...");
-                    console.log("API Endpoint:", `${process.env.REACT_APP_BASE_URL}/api/startSingleConversation`);
                     response = await startSingleGPTConversation(names[id2]);
                 } else {
-                    console.log("Starting two GPT conversation...");
-                    console.log("API Endpoint:", `${process.env.REACT_APP_BASE_URL}/api/startConversation`);
                     response = await startTwoGPTConversation(names[id1], names[id2]);
                 }
     
-                console.log("API Response:", response);
-    
                 if (response) {
-                    setConversationId(response);
-                    console.log("Conversation ID:", response);
+                    setConversationId(response); // 대화 ID 설정
+                    setDialogues([]); // 기존 대화 초기화
+                    setTurn(0); // 턴 초기화
                 } else {
                     throw new Error("Conversation ID is missing in the response.");
                 }
-    
-                setDialogues([]);
-                setTurn(0);
             } catch (err) {
                 console.error("Error initializing conversation:", err);
                 setError("대화를 시작할 수 없습니다.");
@@ -62,7 +57,7 @@ const ConversationScene = () => {
         };
     
         initializeConversation();
-    }, [id1, id2]);
+    }, [id1, id2]); // 의존성 배열에서 필요 없는 값 제거
 
     // 두 ID 조합에 따라 GLB 경로 매핑
     const glbMapping = {
@@ -76,6 +71,11 @@ const ConversationScene = () => {
 
     const sortedIds = [names[id1], names[id2]].join("-");
     const glbPath = glbMapping[sortedIds];
+    
+    console.log("Starting conversation with IDs:", { gpt1: names[id1], gpt2: names[id2] });
+    console.log("GLB Path:", glbPath);
+    console.log("Speaker:", turn % 2 === 0 ? names[id1] : names[id2]);
+
 
     // 대화 진행
     const handleContinueConversation = async () => {
@@ -83,24 +83,49 @@ const ConversationScene = () => {
             setError("대화가 시작되지 않았습니다.");
             return;
         }
-        
-
+    
         try {
             setLoading(true);
             setError(null);
-
+    
+            // 스피커 역할 결정
             const speaker = turn % 2 === 0 ? names[id1] : names[id2];
-            const userMessage = names[id1] === "me" && turn === 0 ? "안녕하세요!" : null; // 초기 메시지 예시
+            const userMessage = turn === 0 && names[id1] === "me" ? "안녕하세요!" : null;
+    
             const response = await continueConversation(conversationId, userMessage, speaker);
-
-            setDialogues((prev) => [...prev, ...response]);
-            setTurn((prev) => prev + 1);
+    
+            if (response) {
+                const assistantMessages = response.filter(
+                    (message) => message.role === "assistant"
+                ); // 'assistant' 메시지만 추출
+                setDialogues((prev) => {
+                    const newMessages = response.filter((msg) => msg.role === "assistant");
+                    const uniqueMessages = newMessages.filter(
+                        (msg) => !prev.some((prevMsg) => prevMsg.content === msg.content)
+                    );
+                    return [...prev, ...uniqueMessages];
+                });
+                setTurn((prev) => prev + 1); // 턴 증가
+            } else {
+                throw new Error("No response from conversation API.");
+            }
         } catch (err) {
             console.error("Error continuing conversation:", err);
             setError("대화를 불러올 수 없습니다.");
         } finally {
             setLoading(false);
         }
+    };
+
+    // 사용자 입력 전송
+    const handleSendMessage = () => {
+        if (!userInput.trim()) {
+            setError("입력 내용이 비어 있습니다.");
+            return;
+        }
+
+        handleContinueConversation(userInput); // 사용자 입력 전달
+        setUserInput(""); // 입력창 초기화
     };
 
     return (
@@ -132,12 +157,27 @@ const ConversationScene = () => {
                 {error && <p className="error">{error}</p>}
 
                 <div className="dialogue-messages">
-                    {dialogues.map((message, index) => (
-                        <p key={index}>
-                            <strong>{message.speaker}:</strong> {message.content}
-                        </p>
-                    ))}
-                </div>
+                  {dialogues
+                    .filter((message) => message.role === "assistant") // 'assistant' 메시지만 필터링
+                    .map((message, index) => (
+                    <p key={index}>
+                      {message.content}
+                     </p>
+                     ))}
+                  </div>
+
+                  {/* 사용자 입력창 */}
+                  {names[id1] === "me" && (
+                        <div className="user-input">
+                            <textarea
+                                value={userInput}
+                                onChange={(e) => setUserInput(e.target.value)}
+                                placeholder="메시지를 입력하세요..."
+                            />
+                            <button onClick={handleSendMessage}>Send</button>
+                        </div>
+                    )}
+
 
                 {/* 대화 이어가기 버튼 */}
                 {conversationId && (
