@@ -55,10 +55,12 @@ const LanternScene = () => {
         // 조명 추가
         const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
         scene.add(ambientLight);
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+        directionalLight.position.set(5, 10, 7.5);
+        scene.add(directionalLight);
 
         // GLTFLoader로 풍등 모델 로드
         const loader = new GLTFLoader();
-
         const addLantern = (text) => {
             loader.load(
                 "/models/lantern.glb",
@@ -66,13 +68,13 @@ const LanternScene = () => {
                     const lantern = gltf.scene;
 
                     // 텍스처 생성 및 적용
-                    const textTexture = createTextTexture(text);
-                    lantern.traverse((child) => {
-                        if (child.isMesh) {
-                            child.material.map = textTexture; // 텍스처 적용
-                            child.material.needsUpdate = true;
-                        }
-                    });
+                    // const textTexture = createTextTexture(text);
+                    // lantern.traverse((child) => {
+                    //     if (child.isMesh) {
+                    //         child.material.map = textTexture; // 텍스처 적용
+                    //         child.material.needsUpdate = true;
+                    //     }
+                    // });
 
                     lantern.position.set(
                         (Math.random() - 0.5) * 40, // x 좌표 랜덤

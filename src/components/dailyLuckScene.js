@@ -57,9 +57,12 @@ const DailyLuckScene = () => {
         controls.enableDamping = true;
 
         // 조명 추가
-        const light = new THREE.AmbientLight(0xffffff, 1.5); // 부드러운 조명
-        scene.add(light);
-
+        const ambientLight = new THREE.AmbientLight(0xffffff, 1.5);
+        scene.add(ambientLight);
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 2);
+        directionalLight.position.set(5, 10, 7.5);
+        scene.add(directionalLight);
+        
         // GLTF 모델 로드
         const loader = new GLTFLoader();
         loader.load(
