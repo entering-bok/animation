@@ -114,6 +114,39 @@ const DailyLuckScene = () => {
         };
     }, []);
 
+    const parseFortune = (fortuneText) => {
+        // 첫 번째 줄과 나머지 섹션 분리
+        const [title, ...sections] = fortuneText.split("\n\n");
+    
+        // 섹션별로 파싱
+        const parsedSections = sections.map((section) => {
+            // 제목과 내용을 ":"를 기준으로 나눔
+            const [heading, content] = section.split(":");
+            if (!heading || !content) {
+                return null; // 형식이 올바르지 않은 경우 무시
+            }
+            return {
+                heading: heading.replace("**", "").trim(), // "**" 제거 및 제목 정리
+                content: content.replace("** ", "").trim(),
+            };
+        });
+    
+        // 유효하지 않은 섹션 제거
+        return {
+            title: title.trim(),
+            sections: parsedSections.filter((section) => section !== null),
+        };
+    };
+
+    const parsedFortune = fortune ? parseFortune(fortune) : null;
+    console.log(parsedFortune)
+
+    const sectionImages = {
+        사랑운: "/image/love.png",
+        재물운: "/image/wealth.png",
+        건강운: "/image/health.png",
+    };
+
     return (
         <div className="daily-luck-scene">
             <div ref={mountRef} className="threejs-container" />
@@ -131,10 +164,22 @@ const DailyLuckScene = () => {
                     </button>
                 </div>
                 {error && <p className="error">{error}</p>}
-                {fortune && (
+                {parsedFortune && (
                     <div className="fortune-result">
-                        <h2>운세 결과</h2>
-                        <p>{fortune}</p>
+                        
+                        <h2>{parsedFortune.title}</h2>
+                        {parsedFortune.sections.map((section, index) => (
+            <div key={index} className="fortune-section">
+                {/* 이미지 렌더링 */}
+                <img
+                    src={sectionImages[section.heading] || "/images/default.png"} // 매핑된 이미지 또는 기본 이미지
+                    alt={`${section.heading} 이미지`}
+                    className="fortune-section-image"
+                />
+                <h3>{section.heading}</h3>
+                <p>{section.content}</p>
+            </div>
+        ))}
                     </div>
                 )}
             </div>
